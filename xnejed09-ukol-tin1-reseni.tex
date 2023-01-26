@@ -1,0 +1,266 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[left=1.5cm, text={18cm, 24cm}, top=3cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows}
+\allowdisplaybreaks
+
+\newtheoremstyle{result}{}{}{}{}{\bfseries}{:}{ }{\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+
+\theoremstyle{result}
+\newtheorem*{result}{Řešení}
+
+\makeatletter         
+\renewcommand\maketitle{
+{\raggedright % Note the extra {
+\begin{center}
+{\Large \bfseries \@title }\\[2ex]
+{\@author}\\[8ex] 
+\end{center}}} % Note the extra }
+\makeatother
+
+\title{Teoreticka informatika (TIN) – 2022/2023\\ Úkol 1}
+\author{Domink Nejedlý (xnejed09) }
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+    \item
+    Uvažte NKA $M_3$ nad abecedou $\Sigma = \{a, b, c\}$ z obrázku 1:
+    
+    \begin{figure}[h]
+        \centering
+        \begin{tikzpicture}[node distance = 2.5cm, on grid, auto]
+    
+        \node (q) [state, initial, initial text={}] {$q$};
+        \node (r) [state, accepting, right=of q] {$r$};
+        \node (s) [state, right=of r] {$s$};
+    
+        \path[->]
+            (q) edge node {$a$} (r)
+            (q) edge [bend left=35] node {$b$} (s)
+            (r) edge node {$b$} (s)
+            (s) edge [loop right] node {$c$} ()
+            (s) edge [bend left] node {$a$} (r)
+            (s) edge [bend left=45] node {$b$} (q);
+    
+        \end{tikzpicture}
+        \caption{NKA $M_3$}
+    \end{figure}
+    
+    \begin{enumerate}
+        \item
+        Řešením rovnic nad regulárními výrazy sestavte k tomuto automatu ekvivalentní regulární výraz.
+        
+        \begin{result}
+            Z NKA $M_3$ vyjádříme následující soustavu nad regulárními výrazy:
+            \begin{align}
+                X_q &= aX_r + bX_s \\
+                X_r &= \varepsilon + bX_s \\
+                X_s &= bX_q + aX_r + cX_s
+            \end{align}
+            Výraz pro $X_q$ z (1) dosadíme do (3):
+            \begin{align}
+                X_r &= \varepsilon + bX_s \\
+                X_s &= b(aX_r + bX_s) + aX_r + cX_s = \nonumber \\
+                    &= baX_r + bbX_s + aX_r + cX_s = \nonumber \\
+                    &= (ba + a)X_r + (bb + c)X_s
+            \end{align}
+            Výraz pro $X_r$ z (4) dosadíme do (5):
+            \begin{align}
+                X_s &= (ba + a)(\varepsilon + bX_s) + (bb + c)X_s = \nonumber \\
+                    &= ba + babX_s + a + abX_s + bbX_s + cX_s = \nonumber \\
+                    &= (bab + ab + bb + c)X_s + ba + a
+            \end{align}
+            Z (6) vyjádříme $X_s$ pomocí řešení rovnice $X = pX + q$:
+            \begin{equation}
+                X_s = (bab + ab + bb + c)^*(ba + a)
+            \end{equation}
+            Výraz pro $X_s$ ze (7) dosadíme do (2):
+            \begin{equation}
+                X_r = \varepsilon + b(bab + ab + bb + c)^*(ba + a)
+            \end{equation}
+            Dosazením výrazů $X_s$ ze (7) a $X_r$ z (8) do (1) dostaneme:
+            \begin{align}
+                X_q &= a(\varepsilon + b(bab + ab + bb + c)^*(ba + a)) + b(bab + ab + bb + c)^*(ba + a) = \nonumber \\
+                    &= a + ab(bab + ab + bb + c)^*(ba + a) + b(bab + ab + bb + c)^*(ba + a) = \nonumber \\
+                    &= a + (ab + b)(bab + ab + bb + c)^*(ba + a)
+            \end{align}
+            Jazyk $L(M_3)$ popisuje regulární výraz, který je řešením výše uvedené soustavy rovnic pro pro\-měnnou $X_q$.
+        \end{result}
+        
+        \item Sestrojte relaci pravé kongruence $\sim$ s konečným indexem takovou, že $L(M_3)$ je sjednocením některých tříd rozkladu $\{a, b, c\}^*/_\sim$.
+        
+        \begin{result}
+            Jelikož je NKA $M_3$ rovněž DKA, lze třídy rozkladu získat sestavením jazyků přístupo\-vých řetězců v jednotlivých stavech $M_3$.
+            \begin{align*}
+                L^{-1}(q) &= \{\varepsilon\} \cup \{ab, b\}\{ab, bb, bab, c\}^*\{b\} \\
+                L^{-1}(r) &= \{a\} \cup \{ab, b\}\{ab, bb, bab, c\}^*\{a, ba\} \\
+                L^{-1}(s) &= \{ab, b\}\{ab, bb, bab, c\}^*
+            \end{align*}
+            Protože však DKA $M_3$ není úplně definovaný, je nutné doplnit třídu pro stav, jež by přijímal všechny řetězce, které by způsobily zaseknutí DKA $M_3$.
+            \begin{align*}
+                L^{-1}_\mathit{SINK} &= \{a, b, c\}^* \setminus (L^{-1}(q) \cup L^{-1}(r) \cup L^{-1}(s)) = \\
+                                     &= (\{aa, ac, c\} \cup \{ab, b\}\{ab, bb, bab, c\}^*\{aa, ac, baa, bac, bc\})\{a, b, c\}^*
+            \end{align*}
+            Relaci pravé kongruencie $\sim$ lze poté definovat následovně:
+            \begin{align*}
+                u \sim v \iff &(u \in L^{-1}(q) \land v \in L^{-1}(q)) \lor \\
+                              &(u \in L^{-1}(r) \land v \in L^{-1}(r)) \lor \\
+                              &(u \in L^{-1}(s) \land v \in L^{-1}(s)) \lor \\
+                              &(u \in L^{-1}_\mathit{SINK} \land v \in L^{-1}_\mathit{SINK})
+            \end{align*}
+            Rozklad $\{a, b, c\}^*/_\sim$ je tedy následující:
+            $$\{a, b, c\}^* /_\sim = \{ L^{-1}(q), L^{-1}(r), L^{-1}(s), L^{-1}_\mathit{SINK}\}$$
+            $L(M_3)$ je roven ekvivalenční třídě $L^{-1}(r)$, jelikož $r$ je jediným koncovým stavem $M_3$.
+            $$L(M_3) = L^{-1}(r) = \{a\} \cup \{ab, b\}\{ab, bb, bab, c\}^*\{a, ba\}$$
+        \end{result}
+    \end{enumerate}
+    
+    \item
+    Mějme jazyk $L_1$ nad abecedou $\{a, b, c\}$ definovaný následovně:
+    $$L_1 = \{w \mid w \in \{a, b, c\}^* \land \#_a(w) > \#_b(w)\}$$
+    Sestrojte jazyk $L_2$ takový, že $L_1 \cap L_2 \in \mathcal{L}_3$ a zároveň $L_1 \cup L_2 \in \mathcal{L}_3$. Dále rozhodněte a dokažte, zda $L_2$ je, či není, regulární. Pro důkaz regularity sestrojte příslušný konečný automat, nebo gramatiku. Pro důkaz neregularity použijte pumping lemma.
+    
+    Dokažte, že jazyk $L_1$ není regulární.
+    
+    \begin{result}
+        $$L_2 = \{w \mid w \in \{a, b, c\}^* \land \#_a(w) \leq \#_b(w)\}$$
+        \begin{align*}
+            L_1 \cap L_2 &= \emptyset \in \mathcal{L}_3 & L_1 \cup L_2 = \{a, b, c\}^* \in \mathcal{L}_3
+        \end{align*}
+        
+        \begin{itemize}
+            \item $L_2 \notin \mathcal{L}_3$
+            
+            \begin{proof}
+            Předpokládejme, že $L_2 \in \mathcal{L}_3$. Potom z pumping lemmatu plyne, že $\exists k > 0: \forall w \in L_2: |w| \ge k \Rightarrow \exists x, y, z \in \{a, b, c\}^*: w = xyz \land y \neq \varepsilon \land |xy| \leq k \land \forall i \geq 0: xy^iz \in L_2$. Uvažme libovolné $k$ splňující výše uvedenou podmínku. Zvolme slovo $w = a^kb^k \in L_2$. Zřejmě $|w| = 2k \ge k$. Uvažme libovolné $x, y, z \in \{a, b, c\}^*$ takové, že $w = a^kb^k = xyz \land y \neq \varepsilon \land |xy| \leq k \land \forall i \ge 0: xy^iz \in L_2$. Je zřejmé, že $y = a^l$, kde $1 \le l \le k$. Pak ale pro všechna $i > 1$ platí, že $xy^iz \notin L_2$, jelikož $\#_a(xy^iz) > \#_b(xy^iz)$. To je ve sporu s pumping lemmatem pro regulární jazyky a počáteční předpoklad je tedy vyvrácen. Z toho důvodu $L_2 \notin \mathcal{L}_3$.
+            \end{proof}
+            
+            \item $L_1 \notin \mathcal{L}_3$
+            
+            \begin{proof}
+            Předpokládejme, že $L_1 \in \mathcal{L}_3$. Potom z pumping lemmatu plyne, že $\exists k > 0: \forall w \in L_1: |w| \ge k \Rightarrow \exists x, y, z \in \{a, b, c\}^*: w = xyz \land y \neq \varepsilon \land |xy| \leq k \land \forall i \geq 0: xy^iz \in L_1$. Uvažme libovolné $k$ splňující výše uvedenou podmínku. Zvolme slovo $w = a^{k + 1}b^k \in L_1$. Zřejmě $|w| = 2k + 1 \ge k$. Uvažme libovolné $x, y, z \in \{a, b, c\}^*$ takové, že $w = a^{k + 1}b^k = xyz \land y \neq \varepsilon \land |xy| \leq k \land \forall i \ge 0: xy^iz \in L_1$. Je zřejmé, že $y = a^l$, kde $1 \le l \le k$. Pak ale pro $i = 0$ platí, že $xy^0z \notin L_1$, jelikož $\#_a(xy^0z) \le \#_b(xy^0z)$. To je ve sporu s pumping lemmatem pro regulární jazyky a počáteční předpoklad je tedy vyvrácen. Z toho důvodu $L_1 \notin \mathcal{L}_3$.
+            
+            Alternativně lze vyjít z uzávěrových vlastností třídy regulárních jazyků. Víme, že $\mathcal{L}_3$ je uzavřena na doplněk. Zřejmě $L_2 = \textit{co--}L_1$. Jelikož však $\textit{co--}L_1 \notin \mathcal{L}_3$, pak také $L_1 \notin \mathcal{L}_3$.
+            \end{proof}
+        \end{itemize}
+    \end{result}
+    
+    \item
+    Uvažujme jazyk $L_s$, jehož slova jsou n-tice binárních čísel\footnote{Jako binární číslo budeme chápat libovoný řetězec nad abecedou $\{0, 1\}$. Číslo tak může obsahovat počáteční nuly.} oddělené znakem $\#$. Konkrétněji, jazyk $L_s$ obsahuje slova tvaru $w_1\#w_2\#\dots\#w_n\#$, kde $w_1\dots w_n \in \{1, 0\}^+$ jsou binární čísla. Tato slova odpovídají regulárnímu výrazu $R = ((0 + 1)(0 + 1)^*\#)^*$. Uvažujme dále omezení, že alespoň jedno číslo ve slově
+    $w_1\#w_2\#\dots\#w_n\#$ je sudé---tedy jeho poslední znak je $0$. Formálně zapsáno:
+    
+    $$L_s = \{w \in \{0, 1, \#\}^* \mid w \in \mathcal{L}(R) \land w \in \mathcal{L}((0 + 1 + \#)^*0\#(0 + 1 + \#)^*)\}$$
+    
+    \begin{enumerate}
+        \item
+        Sestrojte nedeterministický konečný automat $M_1$ přijímající jazyk $L_s$ (není nutné použít algoritmický postup).
+        
+        \begin{result}
+            $$\text{NKA } M_1 = \{\{q_0, q_1, q_2, q_3, q_4\}, \{0, 1, \#\}, \delta, q_0, \{q_3\}\}$$
+            
+            $\delta$:
+            \begin{align*}
+                &\delta(q_0, 0) = \{q_0, q_2\} & &\delta(q_0, 1) = \{q_0, q_1\} & &\delta(q_0, \#) = \varnothing \\
+                &\delta(q_1, 0) = \varnothing & &\delta(q_1, 1) = \varnothing & &\delta(q_1, \#) = \{q_0\} \\ &\delta(q_2, 0) = \varnothing & &\delta(q_2, 1) = \varnothing & &\delta(q_2, \#) = \{q_3\} \\
+                &\delta(q_3, 0) = \{q_4\} & &\delta(q_3, 1) = \{q_4\} & &\delta(q_3, \#) = \varnothing \\
+                &\delta(q_4, 0) = \{q_4\} & &\delta(q_4, 1) = \{q_4\} & &\delta(q_4, \#) = \{q_3\}
+            \end{align*}
+            
+            \begin{figure}[h]
+            \centering
+            \begin{tikzpicture}[node distance = 2.5cm, on grid, auto]
+        
+            \node (q0) [state, initial below, initial text={}] {$q_0$};
+            \node (q1) [state, left=of q0] {$q_1$};
+            \node (q2) [state, right=of q0] {$q_2$};
+            \node (q3) [state, accepting, right=of q2] {$q_3$};
+            \node (q4) [state, right=of q3] {$q_4$};
+        
+            \path[->]
+                (q0) edge [loop above] node {$0, 1$} ()
+                (q0) edge node {$1$} (q1)
+                (q0) edge node {$0$} (q2)
+                (q1) edge [bend left] node {$\#$} (q0)
+                (q2) edge node {$\#$} (q3)
+                (q3) edge node {$0, 1$} (q4)
+                (q4) edge [loop above] node {$0, 1$} ()
+                (q4) edge [bend left] node {$\#$} (q3);
+        
+            \end{tikzpicture}
+            \caption{NKA $M_1$}
+            \end{figure}
+        \end{result}
+        
+        \newpage\item
+        Automat $M_1$ převeďte algoritmicky na deterministický konečný automat $M_2$.
+        
+        \begin{result}
+            \renewcommand{\arraystretch}{1.5}
+            $$\begin{tabular}{ l c | c c c }
+                     & & 0 & 1 & \# \\\hline
+                \text{počáteční stav:} & $\{q_0\}$ & $\{q_0, q_2\}$ & $\{q_0, q_1\}$ & $\varnothing$ \\  
+                & $\{q_0, q_2\}$ & $\{q_0, q_2\}$ & $\{q_0, q_1\}$ & $\{q_3\}$ \\
+                & $\{q_0, q_1\}$ & $\{q_0, q_2\}$ & $\{q_0, q_1\}$ & $\{q_0\}$ \\
+                \text{koncový stav:} & $\{q_3\}$ & $\{q_4\}$ & $\{q_4\}$ & $\varnothing$ \\
+                & $\{q_4\}$ & $\{q_4\}$ & $\{q_4\}$ & $\{q_3\}$ \\
+                & $\varnothing$ & $\varnothing$ & $\varnothing$ & $\varnothing$
+            \end{tabular}$$
+        
+            $$\text{DKA } M_2 = \{\{\{q_0\}, \{q_0, q_2\}, \{q_0, q_1\}, \{q_3\}, \{q_4\}\}, \{0, 1, \#\}, \delta', \{q_0\}, \{\{q_3\}\}\}$$
+            
+            $\delta'$:
+            \setcounter{equation}{0}
+            \begin{align*}
+                &\delta'(\{q_0\}, 0) = \{q_0, q_2\} & &\delta'(\{q_0\}, 1) = \{q_0, q_1\} & &\delta'(\{q_0\}, \#) = \varnothing \\
+                &\delta'(\{q_0, q_2\}, 0) = \{q_0, q_2\} & &\delta'(\{q_0, q_2\}, 1) = \{q_0, q_1\} & &\delta'(\{q_0, q_2\}, \#) = \{q_3\} \\
+                &\delta'(\{q_0, q_1\}, 0) = \{q_0, q_2\} & &\delta'(\{q_0, q_1\}, 1) = \{q_0, q_1\} & &\delta'(\{q_0, q_1\}, \#) = \{q_0\} \\
+                &\delta'(\{q_3\}, 0) = \{q_4\} & &\delta'(\{q_3\}, 1) = \{q_4\} & &\delta'(\{q_3\}, \#) = \varnothing \\
+                &\delta'(\{q_4\}, 0) = \{q_4\} & &\delta'(\{q_4\}, 1) = \{q_4\} & &\delta'(\{q_4\}, \#) = \{q_3\} \\
+                &\delta'(\varnothing, 0) = \varnothing & &\delta'(\varnothing, 1) = \varnothing & &\delta'(\varnothing, \#) = \varnothing
+            \end{align*}
+            
+            \begin{figure}[h]
+            \centering
+            \begin{tikzpicture}[node distance = 2.5cm, on grid, auto]
+        
+            \node (q0) [state, initial, initial text={}] {$\{q_0\}$};
+            \node (q0q2) [state, right=of q0] {$\{q_0, q_2\}$};
+            \node (q0q1) [state, above=of q0q2] {$\{q_0, q_1\}$};
+            \node (q3) [state, accepting, right=of q0q2] {$\{q_3\}$};
+            \node (q4) [state, right=of q3] {$\{q_4\}$};
+            \node (sink) [state, below=of q0] {$\varnothing$};
+        
+            \path[->]
+                (q0) edge [bend right] node {$0$} (q0q2)
+                (q0) edge [bend left] node {$1$} (q0q1)
+                (q0) edge node {$\#$} (sink)
+                (q0q2) edge [loop below] node {$0$} ()
+                (q0q2) edge node {$1$} (q0q1)
+                (q0q2) edge node {$\#$} (q3)
+                (q0q1) edge [bend left] node {$0$} (q0q2)
+                (q0q1) edge [loop above] node {$1$} ()
+                (q0q1) edge node {$\#$} (q0)
+                (q3) edge node {$0, 1$} (q4)
+                (q3) edge [bend left] node {$\#$} (sink)
+                (q4) edge [loop above] node {$0, 1$} ()
+                (q4) edge [bend left] node {$\#$} (q3)
+                (sink) edge [loop left] node {$0, 1, \#$} ();
+        
+            \end{tikzpicture}
+            \caption{DKA $M_2$}
+            \end{figure}
+        \end{result}
+    \end{enumerate}
+\end{enumerate}
+
+\end{document}
